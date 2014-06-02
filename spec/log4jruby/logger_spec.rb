@@ -8,8 +8,8 @@ module Log4jruby
 
     subject { Logger.get('Test', :level => :debug) }
 
-    let(:log4j) { subject.log4j_logger} 
-  
+    let(:log4j) { subject.log4j_logger}
+
     describe "mapping to Log4j Logger names" do
       it "should prepend 'jruby.' to specified name" do
         Logger.get('MyLogger').log4j_logger.name.should == 'jruby.MyLogger'
@@ -19,12 +19,12 @@ module Log4jruby
         Logger.get('A::B::C').log4j_logger.name.should == "jruby.A.B.C"
       end
     end
-    
+
     describe ".get" do
       it "should return one logger per name" do
         Logger.get('test').should be_equal(Logger.get('test'))
       end
-      
+
       it "should accept attributes hash" do
         logger = Logger.get("loggex#{object_id}", :level => :fatal, :tracing => true)
         logger.log4j_logger.level.should == Java::org.apache.log4j.Level::FATAL
@@ -36,12 +36,12 @@ module Log4jruby
       it "should be accessible via .root" do
         Logger.root.log4j_logger.name.should == 'jruby'
       end
-      
+
       it "should always return same object" do
         Logger.root.should be_equal(Logger.root)
       end
     end
-    
+
     specify "there should be only one logger per name(retrievable via Logger[name])" do
       Logger["A"].should be_equal(Logger["A"])
     end
@@ -49,23 +49,23 @@ module Log4jruby
     specify "the backing log4j Logger should be accessible via :log4j_logger" do
       Logger.get('X').log4j_logger.should be_instance_of(Java::org.apache.log4j.Logger)
     end
-    
+
     describe 'Rails logger compatabity' do
       it "should respond to <level>?" do
         [:debug, :info, :warn].each do |level|
           subject.respond_to?("#{level}?").should == true
         end
       end
-      
+
       it "should respond to :level" do
         subject.respond_to?(:level).should == true
       end
-      
+
       it "should respond to :flush" do
         subject.respond_to?(:flush).should == true
       end
     end
-    
+
     describe "#level =" do
       describe 'accepts symbols or ::Logger constants' do
         [:debug, :info, :warn, :error, :fatal].each do |l|
@@ -103,7 +103,7 @@ module Log4jruby
           log4j.should_receive(level).with('7', nil)
           subject.send(level, 7)
         end
-        
+
         it "should log message and backtrace for ruby exceptions" do
           log4j.should_receive(level).with(/some error.*#{__FILE__}/m, nil)
           begin
@@ -123,7 +123,7 @@ module Log4jruby
             subject.send(level, e)
           end
         end
-       
+
       end
     end
 
@@ -134,7 +134,7 @@ module Log4jruby
           log4j.should_receive(level).with("test", nil)
           subject.send(level) { 'test' }
         end
-        
+
         it "should not evaluate block argument if #{level} is not enabled" do
           log4j.should_receive(:isEnabledFor).and_return(false)
           subject.send(level) { raise 'block was called' }
@@ -148,15 +148,15 @@ module Log4jruby
         Logger.get("A::B").tracing = nil
         Logger.get("A").tracing = nil
       end
-      
+
       it "should return false with tracing unset anywhere" do
         Logger['A'].tracing?.should == false
       end
-      
+
       it "should return true with tracing explicitly set to true" do
         Logger.get('A', :tracing => true).tracing?.should == true
       end
-      
+
       it "should return true with tracing unset but set to true on parent" do
         Logger.get('A', :tracing => true)
         Logger.get('A::B').tracing?.should == true
@@ -224,7 +224,7 @@ module Log4jruby
 
     context "with tracing off" do
       before { subject.tracing = false }
-      
+
       it "should set MDC with blank values" do
         log4j.should_receive(:debug) do
           MDC.get('fileName').should == ''
@@ -258,13 +258,13 @@ module Log4jruby
       it "should do nothing(i.e. not bomb) if given nil" do
         subject.attributes = nil
       end
-      
+
       it "should set values with matching setters" do
         subject.tracing = false
         subject.attributes = {:tracing => true}
         subject.tracing.should == true
       end
-      
+
       it "should ignore values without matching setter" do
         subject.attributes = {:no_such_attribute => 'ignore' }
       end
