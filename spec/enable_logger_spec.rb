@@ -2,7 +2,7 @@ require 'spec_helper'
 
 require 'log4jruby'
 
-describe '.enable_logger injects a logger', :log_capture => true do
+describe '.enable_logger injects a logger' do
   class LogEnabledClass
     enable_logger
 
@@ -16,7 +16,7 @@ describe '.enable_logger injects a logger', :log_capture => true do
   end
 
   specify 'logger is available to instance' do
+    Log4jruby::Logger.any_instance.should_receive(:debug).with('foo')
     LogEnabledClass.new.echo('foo')
-    log_capture.should include('foo')
   end
 end

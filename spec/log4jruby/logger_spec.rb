@@ -4,7 +4,7 @@ require 'log4jruby'
 
 module Log4jruby
   describe Logger do
-    MDC = Java::org.apache.log4j.MDC
+    context = Java::org.apache.logging.log4j.ThreadContext
 
     subject { Logger.get('Test', :level => :debug) }
 
@@ -27,7 +27,7 @@ module Log4jruby
 
       it "should accept attributes hash" do
         logger = Logger.get("loggex#{object_id}", :level => :fatal, :tracing => true)
-        logger.log4j_logger.level.should == Java::org.apache.log4j.Level::FATAL
+        logger.log4j_logger.level.should == Java::org.apache.logging.log4j.Level::FATAL
         logger.tracing.should == true
       end
     end
@@ -47,7 +47,7 @@ module Log4jruby
     end
 
     specify "the backing log4j Logger should be accessible via :log4j_logger" do
-      Logger.get('X').log4j_logger.should be_instance_of(Java::org.apache.log4j.Logger)
+      Logger.get('X').log4j_logger.should be_instance_of(Java::org.apache.logging.log4j.core.Logger)
     end
 
     describe 'Rails logger compatabity' do
@@ -130,13 +130,13 @@ module Log4jruby
     [:debug, :info, :warn].each do |level|
       describe "##{level} with block argument" do
         it "should log return value of block argument if #{level} is enabled" do
-          log4j.should_receive(:isEnabledFor).and_return(true)
+          log4j.should_receive(:isEnabled).and_return(true)
           log4j.should_receive(level).with("test", nil)
           subject.send(level) { 'test' }
         end
 
         it "should not evaluate block argument if #{level} is not enabled" do
-          log4j.should_receive(:isEnabledFor).and_return(false)
+          log4j.should_receive(:isEnabled).and_return(false)
           subject.send(level) { raise 'block was called' }
         end
       end
@@ -178,58 +178,58 @@ module Log4jruby
         subject.tracing = true
       end
 
-      it "should set MDC lineNumber for duration of invocation" do
+      it "should set context lineNumber for duration of invocation" do
         line = __LINE__ + 5
         log4j.should_receive(:debug) do
-          MDC.get('lineNumber').should == "#{line}"
+          context.get('lineNumber').should == "#{line}"
         end
 
         subject.debug('test')
 
-        MDC.get('lineNumber').should be_nil
+        context.get('lineNumber').should be_nil
       end
 
-      it "should set MDC fileName for duration of invocation" do
+      it "should set context fileName for duration of invocation" do
         log4j.should_receive(:debug) do
-          MDC.get('fileName').should == __FILE__
+          context.get('fileName').should == __FILE__
         end
 
         subject.debug('test')
 
-        MDC.get('fileName').should be_nil
+        context.get('fileName').should be_nil
       end
 
-      it "should not push caller info into MDC if logging level is not enabled" do
-        log4j.stub(:isEnabledFor).and_return(false)
+      it "should not push caller info into context if logging level is not enabled" do
+        log4j.stub(:isEnabled).and_return(false)
 
-        MDC.stub(:put).and_raise("MDC was modified")
+        context.stub(:put).and_raise("context was modified")
 
         subject.debug('test')
       end
 
-      it "should set MDC methodName for duration of invocation" do
+      it "should set context methodName for duration of invocation" do
         def some_method
           subject.debug('test')
         end
 
         log4j.should_receive(:debug) do
-          MDC.get('methodName').should == 'some_method'
+          context.get('methodName').should == 'some_method'
         end
 
         some_method()
 
-        MDC.get('methodName').should be_nil
+        context.get('methodName').should be_nil
       end
     end
 
     context "with tracing off" do
       before { subject.tracing = false }
 
-      it "should set MDC with blank values" do
+      it "should set context with blank values" do
         log4j.should_receive(:debug) do
-          MDC.get('fileName').should == ''
-          MDC.get('methodName').should == ''
-          MDC.get('lineNumber').should == ''
+          context.get('fileName').should == ''
+          context.get('methodName').should == ''
+          context.get('lineNumber').should == ''
         end
 
         subject.debug('test')
