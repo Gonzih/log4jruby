@@ -171,6 +171,10 @@ module Log4jruby
         Logger.root.tracing = true
         Logger.get('A::B').tracing?.should == true
       end
+
+      it 'should return parent properly' do
+        Logger.get('A::B').parent.should == Logger.get('A')
+      end
     end
 
     context "with tracing on" do
