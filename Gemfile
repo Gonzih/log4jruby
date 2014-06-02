@@ -6,4 +6,5 @@ gemspec
 group :test, :development do
   gem 'rake', '~> 10.0.1', :require => false
   gem 'rspec'
+  gem 'ruby-debug'
 end
