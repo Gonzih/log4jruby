@@ -8,7 +8,7 @@ logger.debug("hello world")
 
 class MyClass
   attr_reader :logger
-  
+
   def initialize
     @logger = Log4jruby::Logger.get(self.class.name, :level => :debug, :tracing => true)
   end
@@ -40,4 +40,3 @@ Log4jruby::Logger.get('MyClass', :level => :error)
 
 logger.debug("calling foo again")
 o.foo
-

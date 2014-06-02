@@ -3,13 +3,13 @@ require 'log4jruby/log4j_args'
 require 'logger'
 
 module Log4jruby
-  
+
   # Author::    Lenny Marks
   #
   # Wrapper around org.apache.log4j.Logger with interface similar to standard ruby Logger.
   #
   # * Ruby and Java exceptions are logged with backtraces.
-  # * fileName, lineNumber, methodName available to appender layouts via MDC variables(e.g. %X{lineNumber}) 
+  # * fileName, lineNumber, methodName available to appender layouts via MDC variables(e.g. %X{lineNumber})
   class Logger
     BLANK_CALLER = ['', '', ''] #:nodoc:
 
@@ -21,7 +21,7 @@ module Log4jruby
         Java::org.apache.log4j.Level::FATAL => ::Logger::FATAL,
     }
 
-    # turn tracing on to make fileName, lineNumber, and methodName available to 
+    # turn tracing on to make fileName, lineNumber, and methodName available to
     # appender layout through MDC(ie. %X{fileName} %X{lineNumber} %X{methodName})
     attr_accessor :tracing
 
@@ -29,40 +29,40 @@ module Log4jruby
       def logger_mapping
         @logger_mapping ||= {}
       end
-      
+
       # get Logger for name
       def[](name)
         name = name.nil? ? 'jruby' : "jruby.#{name.gsub('::', '.')}"
-       
+
         log4j = Java::org.apache.log4j.Logger.getLogger(name)
         log4jruby = logger_mapping[log4j]
-        
+
         unless log4jruby
           log4jruby = new(log4j)
         end
-        
+
         log4jruby
       end
-      
+
       # same as [] but accepts attributes
       def get(name, values = {})
         logger = self[name]
         logger.attributes = values
         logger
       end
-      
+
       # Return root Logger(i.e. jruby)
       def root
         log4j = Java::org.apache.log4j.Logger.getLogger('jruby')
-        
+
         log4jruby = logger_mapping[log4j]
         unless log4jruby
           log4jruby = new(log4j)
         end
         log4jruby
-      end   
+      end
     end
-    
+
     def attributes=(values)
       if values
         values.each_pair do |k, v|
@@ -71,7 +71,7 @@ module Log4jruby
         end
       end
     end
-    
+
     # Shortcut for setting log levels. (:debug, :info, :warn, :error, :fatal)
     def level=(level)
       @logger.level = case level
@@ -89,11 +89,11 @@ module Log4jruby
         raise NotImplementedError
       end
     end
-    
+
     def level
       LOG4J_LEVELS[@logger.effectiveLevel]
     end
-    
+
     def flush
       #rails compatability
     end
@@ -136,37 +136,37 @@ module Log4jruby
     def log4j_logger
       @logger
     end
-    
+
     def debug?
       @logger.isEnabledFor(Java::org.apache.log4j.Priority::DEBUG)
     end
-    
+
     def info?
       @logger.isEnabledFor(Java::org.apache.log4j.Priority::INFO)
     end
-    
+
     def warn?
       @logger.isEnabledFor(Java::org.apache.log4j.Priority::WARN)
     end
-    
+
     def tracing?
       if tracing.nil?
         if parent == Logger.root
           Logger.root.tracing == true
-        else 
+        else
          parent.tracing?
         end
       else
         tracing == true
       end
     end
-    
+
     def parent
       logger_mapping[log4j_logger.parent] || Logger.root
     end
-    
+
     private
-    
+
     def logger_mapping
       Logger.logger_mapping
     end
@@ -175,7 +175,7 @@ module Log4jruby
       @logger = logger
       Logger.logger_mapping[@logger] = self
     end
-    
+
     def with_context # :nodoc:
       file_line_method = tracing? ? parse_caller(caller(3).first) : BLANK_CALLER
 
@@ -202,10 +202,10 @@ module Log4jruby
     def parse_caller(at) # :nodoc:
       at.match(/^(.+?):(\d+)(?::in `(.*)')?/).captures
     end
-    
+
     def mdc
-      Java::org.apache.log4j.MDC 
+      Java::org.apache.log4j.MDC
     end
-    
+
   end
 end
